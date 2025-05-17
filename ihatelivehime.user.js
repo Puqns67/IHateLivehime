@@ -4,9 +4,10 @@
 // @description 在个人直播间添加“开始直播”与“结束直播”按钮，让低粉丝数的用户也能绕开强制要求的直播姬开播。
 // @match       https://live.bilibili.com/*
 // @icon        https://i0.hdslb.com/bfs/static/jinkela/long/images/favicon.ico
-// @version     0.1.1
+// @version     0.1.2
 // @author      Puqns67
 // @namespace   https://github.com/Puqns67
+// @@updateURL  https://github.com/Puqns67/IHateLivehime/raw/refs/heads/master/ihatelivehime.user.js
 // @downloadURL https://github.com/Puqns67/IHateLivehime/raw/refs/heads/master/ihatelivehime.user.js
 // @homepageURL https://github.com/Puqns67/IHateLivehime
 // @supportURL  https://github.com/Puqns67/IHateLivehime/issues
@@ -46,11 +47,11 @@
 	}
 
 	async function get_room_info_by_room_id(id) {
-		return await fetch(`https: //api.live.bilibili.com/room/v1/Room/get_info?room_id=${id}`, { "credentials": "include" }).then(r => r.json());
+		return await fetch(`https://api.live.bilibili.com/room/v1/Room/get_info?room_id=${id}`, { "credentials": "include" }).then(r => r.json());
 	}
 
 	async function get_room_info_by_user_id(id) {
-		return await fetch(`https: //api.live.bilibili.com/live_user/v1/Master/info?uid=${id}`, { "credentials": "include" }).then(r => r.json());
+		return await fetch(`https://api.live.bilibili.com/live_user/v1/Master/info?uid=${id}`, { "credentials": "include" }).then(r => r.json());
 	}
 
 	async function start_live(room_id) {
@@ -80,11 +81,7 @@
 			"csrf": bili_jct
 		}).toString();
 
-		let response = await fetch("https://api.live.bilibili.com/room/v1/Room/startLive?" + params,
-			{
-				"method": "POST",
-				"credentials": "include"
-			}).then(r => r.json());
+		let response = await fetch("https://api.live.bilibili.com/room/v1/Room/startLive?" + params, { "method": "POST", "credentials": "include" }).then(r => r.json());
 
 		if (response.code !== 0) {
 			alert(`${response.msg}\n错误代码：${response.code}\n${response.toString()}`);
@@ -135,9 +132,7 @@
 		return;
 	}
 
-	let room_id = Number(path_room_id[
-		1
-	])
+	let room_id = Number(path_room_id[1])
 
 	let current_user_info = await get_current_user_info()
 	let current_room_info = await get_room_info_by_room_id(room_id)

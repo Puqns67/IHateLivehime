@@ -1,12 +1,15 @@
 // ==UserScript==
 // @name        IHateLivehime
 // @name:zh-CN  我讨厌直播姬
-// @description 2025/05/15 13:55:33
+// @description 在个人直播间添加“开始直播”与“结束直播”按钮，让低粉丝数的用户也能绕开强制要求的直播姬开播。
+// @match       https://live.bilibili.com/*
 // @icon        https://i0.hdslb.com/bfs/static/jinkela/long/images/favicon.ico
-// @version     0.1.0
+// @version     0.1.1
 // @author      Puqns67
 // @namespace   https://github.com/Puqns67
-// @match       https://live.bilibili.com/*
+// @downloadURL https://github.com/Puqns67/IHateLivehime/raw/refs/heads/master/ihatelivehime.user.js
+// @homepageURL https://github.com/Puqns67/IHateLivehime
+// @supportURL  https://github.com/Puqns67/IHateLivehime/issues
 // ==/UserScript==
 
 (async function () {
@@ -35,9 +38,7 @@
 		if (re === null) {
 			return null;
 		}
-		return re[
-			1
-		];
+		return re[1];
 	}
 
 	async function get_current_user_info() {
@@ -158,7 +159,7 @@
 	start_live_button.addEventListener("click", async () => start_live(room_id));
 
 	let stop_live_button = document.createElement("button");
-	stop_live_button.appendChild(document.createTextNode("停止直播"));
+	stop_live_button.appendChild(document.createTextNode("结束直播"));
 	stop_live_button.addEventListener("click", async () => stop_live(room_id));
 
 	button_area.appendChild(start_live_button);

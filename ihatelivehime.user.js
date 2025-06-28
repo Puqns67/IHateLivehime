@@ -4,7 +4,7 @@
 // @description 在个人直播间添加“开始直播”与“结束直播”按钮，让低粉丝数的用户也能绕开强制要求的直播姬开播。
 // @match       https://live.bilibili.com/*
 // @icon        https://i0.hdslb.com/bfs/static/jinkela/long/images/favicon.ico
-// @version     0.1.2.1
+// @version     0.1.3
 // @author      Puqns67
 // @namespace   https://github.com/Puqns67
 // @updateURL   https://github.com/Puqns67/IHateLivehime/raw/refs/heads/master/ihatelivehime.user.js
@@ -18,6 +18,10 @@
 
 	function sleep(time) {
 		return new Promise((resolve) => setTimeout(resolve, time));
+	}
+
+	function api_alert(object) {
+		alert(`${object.msg}\n错误代码：${object.code}\n详细信息：\n${JSON.stringify(object)}`);
 	}
 
 	async function get_element_with_wait(selectors, timeout = 3200, retry_count = 32) {
@@ -36,10 +40,7 @@
 
 	function get_cookie(name) {
 		let re = new RegExp(`(?:^|; *)${name}=([^=]+?)(?:;|$)`).exec(document.cookie);
-		if (re === null) {
-			return null;
-		}
-		return re[1];
+		return re === null ? null : re[1];
 	}
 
 	async function get_current_user_info() {
@@ -58,33 +59,33 @@
 		let room_info = await get_room_info_by_room_id(room_id);
 
 		if (room_info.code !== 0) {
-			alert(`${response.msg}\n错误代码：${response.code}\n${response.toString()}`);
+			api_alert(room_info);
 			return;
 		}
 
 		if (room_info.data.live_status === 1) {
-			alert("房间已开播！")
+			alert("无法开始直播\n房间已开播！")
 			return;
 		}
 
 		let bili_jct = get_cookie("bili_jct");
 
 		if (bili_jct === null) {
-			alert("Cookie \"bili_jct\" 不应为空！");
+			alert("无法开始直播\nCookie \"bili_jct\" 不存在，请尝试重新登录！");
 			return;
 		}
 
 		let params = new URLSearchParams({
+			"platform": "pc_link",
 			"room_id": room_id,
 			"area_v2": room_info.data.area_id,
-			"platform": "pc_link",
 			"csrf": bili_jct
 		}).toString();
 
 		let response = await fetch("https://api.live.bilibili.com/room/v1/Room/startLive?" + params, { "method": "POST", "credentials": "include" }).then(r => r.json());
 
 		if (response.code !== 0) {
-			alert(`${response.msg}\n错误代码：${response.code}\n${response.toString()}`);
+			api_alert(response);
 			return;
 		}
 
@@ -95,22 +96,24 @@
 		let room_info = await get_room_info_by_room_id(room_id);
 
 		if (room_info.code !== 0) {
-			alert(`${response.msg}\n错误代码：${response.code}\n${response.toString()}`);
+			api_alert(room_info);
 			return;
 		}
 
 		if ([0, 2].includes(room_info.data.live_status)) {
-			alert("房间未开播！")
+			alert("无法关闭直播\n房间未开播！")
 			return;
 		}
 
 		let bili_jct = get_cookie("bili_jct");
+
 		if (bili_jct === null) {
-			alert("Cookie \"bili_jct\" 不应为空！");
+			alert("无法关闭直播\nCookie \"bili_jct\" 不存在，请尝试重新登录！");
 			return;
 		}
 
 		let params = new URLSearchParams({
+			"platform": "pc_link",
 			"room_id": room_id,
 			"csrf": bili_jct
 		}).toString();
@@ -118,7 +121,7 @@
 		let response = await fetch("https://api.live.bilibili.com/room/v1/Room/stopLive?" + params, { "method": "POST", "credentials": "include" }).then(r => r.json());
 
 		if (response.code !== 0) {
-			alert(`${response.msg}\n错误代码：${response.code}\n${response.toString()}`);
+			api_alert(response);
 			return;
 		}
 

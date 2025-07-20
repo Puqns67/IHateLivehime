@@ -86,7 +86,7 @@
 
 		let current_timestemp = await get_timestemp()
 		if (current_timestemp.code !== 0) {
-			api_alert(current_liveime_version);
+			api_alert(current_timestemp);
 			return;
 		}
 

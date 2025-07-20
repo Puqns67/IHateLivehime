@@ -11,3 +11,8 @@
 ## 移除
 
 在你的用户脚本管理器里移除此脚本即可。
+
+## 致谢
+
+* [SocialSisterYi/bilibili-API-collect](https://github.com/SocialSisterYi/bilibili-API-collect)
+* [ChaceQC/bilibili_live_stream_code](https://github.com/ChaceQC/bilibili_live_stream_code)

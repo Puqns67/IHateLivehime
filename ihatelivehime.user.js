@@ -4,7 +4,7 @@
 // @description 在个人直播间添加“开始直播”与“结束直播”按钮，让低粉丝数的用户也能绕开强制要求的直播姬开播。
 // @match       https://live.bilibili.com/*
 // @icon        https://i0.hdslb.com/bfs/static/jinkela/long/images/favicon.ico
-// @version     0.1.4
+// @version     0.1.4.1
 // @author      Puqns67
 // @namespace   https://github.com/Puqns67
 // @updateURL   https://github.com/Puqns67/IHateLivehime/raw/refs/heads/master/ihatelivehime.user.js

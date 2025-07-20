@@ -151,7 +151,7 @@
 		alert("操作成功");
 	}
 
-	let path_room_id = /^\/(\d+)$/.exec(document.location.pathname)
+	let path_room_id = /^\/(\d+)/.exec(document.location.pathname)
 
 	if (path_room_id === null) {
 		console.log("当前页面并非直播间！");

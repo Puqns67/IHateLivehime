@@ -4,7 +4,7 @@
 // @description 在个人直播间添加“开始直播”与“结束直播”按钮，让低粉丝数的用户也能绕开强制要求的直播姬开播。
 // @match       https://live.bilibili.com/*
 // @icon        https://i0.hdslb.com/bfs/static/jinkela/long/images/favicon.ico
-// @version     0.1.4.1
+// @version     0.1.5
 // @author      Puqns67
 // @namespace   https://github.com/Puqns67
 // @updateURL   https://github.com/Puqns67/IHateLivehime/raw/refs/heads/master/ihatelivehime.user.js
@@ -12,6 +12,7 @@
 // @homepageURL https://github.com/Puqns67/IHateLivehime
 // @supportURL  https://github.com/Puqns67/IHateLivehime/issues
 // @require     https://cdn.jsdelivr.net/npm/js-md5/build/md5.min.js
+// @grant       GM_setClipboard
 // ==/UserScript==
 
 (async function () {
@@ -116,7 +117,8 @@
 			return;
 		}
 
-		alert(`推流地址：${response.data.rtmp.addr}\n推流密钥：${response.data.rtmp.code}`);
+		GM_setClipboard(response.data.rtmp.code)
+		alert(`开始直播成功！\n推流密钥已经发送至剪贴板~\n\n推流地址：${response.data.rtmp.addr}\n推流密钥：${response.data.rtmp.code}`);
 	}
 
 	async function stop_live(room_id) {
@@ -148,7 +150,7 @@
 			return;
 		}
 
-		alert("操作成功");
+		alert("关闭直播成功！");
 	}
 
 	let path_room_id = /^\/(\d+)/.exec(document.location.pathname)

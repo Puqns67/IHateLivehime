@@ -43,6 +43,32 @@
 		return null;
 	}
 
+	function checkInDark() {
+		let element = document.querySelector("#head-info-vm");
+		let content = getComputedStyle(element, '::before').getPropertyValue('content')
+		return content === '""';
+	}
+
+	// pointer-events
+	function changePointerEvents() {
+		let element = document.querySelector("#head-info-vm");
+		// 为它添加我们刚刚创建的辅助类
+		if (element) {
+			// 3. 创建一个 <style> 元素
+			const styleElement = document.createElement('style');
+
+			// 4. 定义只针对这个 div 的伪元素的 CSS 规则
+			styleElement.textContent = `
+				#head-info-vm::before {
+				pointer-events: none !important;
+				}
+			`;
+
+			// 5. 将这个 <style> 元素作为子节点，添加到 div 的内部
+			element.appendChild(styleElement);
+		}
+	}
+
 	function get_cookie(name) {
 		let re = new RegExp(`(?:^|; *)${name}=([^=]+?)(?:;|$)`).exec(document.cookie);
 		return re === null ? null : re[1];
@@ -175,6 +201,10 @@
 	if (button_area === null) {
 		console.log("页面元素不存在！");
 		return;
+	}
+
+	if (checkInDark()) {
+		changePointerEvents();
 	}
 
 	let start_live_button = document.createElement("button");

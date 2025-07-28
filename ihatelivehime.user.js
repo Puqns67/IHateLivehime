@@ -10,8 +10,8 @@
 // @homepageURL https://github.com/Puqns67/IHateLivehime
 // @supportURL  https://github.com/Puqns67/IHateLivehime/issues
 // @namespace   https://github.com/Puqns67
-// @downloadURL https://openuserjs.org/install/Puqns67/ihatelivehime.user.js
-// @updateURL   https://openuserjs.org/meta/Puqns67/ihatelivehime.meta.js
+// @downloadURL https://openuserjs.org/install/Puqns67/IHateLivehime.min.user.js
+// @updateURL   https://openuserjs.org/meta/Puqns67/IHateLivehime.meta.js
 // @match       https://live.bilibili.com/*
 // @require     https://cdn.jsdelivr.net/npm/js-md5/build/md5.min.js
 // @grant       GM_addStyle

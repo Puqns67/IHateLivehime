@@ -164,6 +164,11 @@
 	let room_id = Number(path_room_id[1])
 
 	let current_user_info = await get_current_user_info()
+	if (current_user_info.code === -101) {
+		console.log("账户未登录");
+		return;
+	}
+
 	let current_room_info = await get_room_info_by_room_id(room_id)
 
 	if (current_user_info.data.mid !== current_room_info.data.uid) {

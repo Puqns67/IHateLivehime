@@ -13,6 +13,7 @@
 // @supportURL  https://github.com/Puqns67/IHateLivehime/issues
 // @require     https://cdn.jsdelivr.net/npm/js-md5/build/md5.min.js
 // @grant       GM_setClipboard
+// @grant       GM_addStyle
 // ==/UserScript==
 
 (async function () {
@@ -188,5 +189,6 @@
 	button_area.appendChild(start_live_button);
 	button_area.appendChild(stop_live_button);
 
+    GM_addStyle("html[lab-style*='dark'] #head-info-vm.bg-bright-filter::before { pointer-events: none }");
 	console.log("开/下播按钮已添加！");
 }());

@@ -2,15 +2,17 @@
 // @name        IHateLivehime
 // @name:zh-CN  我讨厌直播姬
 // @description 在个人直播间添加“开始直播”与“结束直播”按钮，让低粉丝数的用户也能绕开强制要求的直播姬开播。
-// @match       https://live.bilibili.com/*
-// @icon        https://i0.hdslb.com/bfs/static/jinkela/long/images/favicon.ico
-// @version     0.1.5.1
 // @author      Puqns67
-// @namespace   https://github.com/Puqns67
-// @updateURL   https://github.com/Puqns67/IHateLivehime/raw/refs/heads/master/ihatelivehime.user.js
-// @downloadURL https://github.com/Puqns67/IHateLivehime/raw/refs/heads/master/ihatelivehime.user.js
+// @copyright   2025, Puqns67 (https://github.com/Puqns67)
+// @license     GPL-3.0-or-later; https://www.gnu.org/licenses/gpl-3.0.txt
+// @version     0.1.5.1
+// @icon        https://i0.hdslb.com/bfs/static/jinkela/long/images/favicon.ico
 // @homepageURL https://github.com/Puqns67/IHateLivehime
 // @supportURL  https://github.com/Puqns67/IHateLivehime/issues
+// @namespace   https://github.com/Puqns67
+// @downloadURL https://openuserjs.org/install/Puqns67/ihatelivehime.user.js
+// @updateURL   https://openuserjs.org/meta/Puqns67/ihatelivehime.meta.js
+// @match       https://live.bilibili.com/*
 // @require     https://cdn.jsdelivr.net/npm/js-md5/build/md5.min.js
 // @grant       GM_addStyle
 // @grant       GM_setClipboard

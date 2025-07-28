@@ -13,6 +13,7 @@
 // @supportURL  https://github.com/Puqns67/IHateLivehime/issues
 // @require     https://cdn.jsdelivr.net/npm/js-md5/build/md5.min.js
 // @grant       GM_setClipboard
+// @grant       GM_addStyle
 // ==/UserScript==
 
 (async function () {
@@ -47,26 +48,6 @@
 		let element = document.querySelector("#head-info-vm");
 		let content = getComputedStyle(element, '::before').getPropertyValue('content')
 		return content === '""';
-	}
-
-	// pointer-events
-	function changePointerEvents() {
-		let element = document.querySelector("#head-info-vm");
-		// 为它添加我们刚刚创建的辅助类
-		if (element) {
-			// 3. 创建一个 <style> 元素
-			const styleElement = document.createElement('style');
-
-			// 4. 定义只针对这个 div 的伪元素的 CSS 规则
-			styleElement.textContent = `
-				#head-info-vm::before {
-				pointer-events: none !important;
-				}
-			`;
-
-			// 5. 将这个 <style> 元素作为子节点，添加到 div 的内部
-			element.appendChild(styleElement);
-		}
 	}
 
 	function get_cookie(name) {
@@ -204,7 +185,8 @@
 	}
 
 	if (checkInDark()) {
-		changePointerEvents();
+		// 修复在直播间实验室中启用深色模式后无法点击顶栏中任何元素的问题（上游 BUG）
+        GM_addStyle("html[lab-style*='dark'] #head-info-vm.bg-bright-filter::before { pointer-events: none }");
 	}
 
 	let start_live_button = document.createElement("button");

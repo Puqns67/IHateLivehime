@@ -44,12 +44,6 @@
 		return null;
 	}
 
-	function checkInDark() {
-		let element = document.querySelector("#head-info-vm");
-		let content = getComputedStyle(element, '::before').getPropertyValue('content')
-		return content === '""';
-	}
-
 	function get_cookie(name) {
 		let re = new RegExp(`(?:^|; *)${name}=([^=]+?)(?:;|$)`).exec(document.cookie);
 		return re === null ? null : re[1];
@@ -184,11 +178,6 @@
 		return;
 	}
 
-	if (checkInDark()) {
-		// 修复在直播间实验室中启用深色模式后无法点击顶栏中任何元素的问题（上游 BUG）
-        GM_addStyle("html[lab-style*='dark'] #head-info-vm.bg-bright-filter::before { pointer-events: none }");
-	}
-
 	let start_live_button = document.createElement("button");
 	start_live_button.appendChild(document.createTextNode("开始直播"));
 	start_live_button.addEventListener("click", async () => start_live(room_id));
@@ -200,5 +189,6 @@
 	button_area.appendChild(start_live_button);
 	button_area.appendChild(stop_live_button);
 
+    GM_addStyle("html[lab-style*='dark'] #head-info-vm.bg-bright-filter::before { pointer-events: none }");
 	console.log("开/下播按钮已添加！");
 }());

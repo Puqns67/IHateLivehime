@@ -4,7 +4,7 @@
 // @description 在个人直播间添加“开始直播”与“结束直播”按钮，让低粉丝数的用户也能绕开强制要求的直播姬开播。
 // @match       https://live.bilibili.com/*
 // @icon        https://i0.hdslb.com/bfs/static/jinkela/long/images/favicon.ico
-// @version     0.1.5
+// @version     0.1.5.1
 // @author      Puqns67
 // @namespace   https://github.com/Puqns67
 // @updateURL   https://github.com/Puqns67/IHateLivehime/raw/refs/heads/master/ihatelivehime.user.js
@@ -12,8 +12,8 @@
 // @homepageURL https://github.com/Puqns67/IHateLivehime
 // @supportURL  https://github.com/Puqns67/IHateLivehime/issues
 // @require     https://cdn.jsdelivr.net/npm/js-md5/build/md5.min.js
-// @grant       GM_setClipboard
 // @grant       GM_addStyle
+// @grant       GM_setClipboard
 // ==/UserScript==
 
 (async function () {
@@ -82,17 +82,17 @@
 			return;
 		}
 		if (room_info.data.live_status === 1) {
-			alert("无法开始直播\n房间已开播！")
+			alert("无法开始直播\n房间已开播！");
 			return;
 		}
 
-		let current_timestemp = await get_timestemp()
+		let current_timestemp = await get_timestemp();
 		if (current_timestemp.code !== 0) {
 			api_alert(current_timestemp);
 			return;
 		}
 
-		let current_liveime_version = await get_current_liveime_version()
+		let current_liveime_version = await get_current_liveime_version();
 		if (current_liveime_version.code !== 0) {
 			api_alert(current_liveime_version);
 			return;
@@ -107,7 +107,7 @@
 			"room_id": room_id,
 			"ts": current_timestemp.data.now,
 			"version": current_liveime_version.data.curr_version
-		}
+		};
 		data.sign = md5(new URLSearchParams(data).toString() + APPSEC);
 
 		let params = new URLSearchParams(data).toString();
@@ -118,7 +118,7 @@
 			return;
 		}
 
-		GM_setClipboard(response.data.rtmp.code)
+		GM_setClipboard(response.data.rtmp.code);
 		alert(`开始直播成功！\n推流密钥已经发送至剪贴板~\n\n推流地址：${response.data.rtmp.addr}\n推流密钥：${response.data.rtmp.code}`);
 	}
 
@@ -135,7 +135,7 @@
 			return;
 		}
 		if ([0, 2].includes(room_info.data.live_status)) {
-			alert("无法关闭直播\n房间未开播！")
+			alert("无法关闭直播\n房间未开播！");
 			return;
 		}
 
@@ -154,32 +154,30 @@
 		alert("关闭直播成功！");
 	}
 
-	let path_room_id = /^\/(\d+)/.exec(document.location.pathname)
-
+	let path_room_id = /^\/(\d+)/.exec(document.location.pathname);
 	if (path_room_id === null) {
-		console.log("当前页面并非直播间！");
+		console.warn("当前页面并非直播间");
 		return;
 	}
 
-	let room_id = Number(path_room_id[1])
+	let room_id = Number(path_room_id[1]);
 
-	let current_user_info = await get_current_user_info()
+	let current_user_info = await get_current_user_info();
 	if (current_user_info.code === -101) {
-		console.log("账户未登录");
+		console.warn("账户未登录");
 		return;
 	}
 
-	let current_room_info = await get_room_info_by_room_id(room_id)
+	let current_room_info = await get_room_info_by_room_id(room_id);
 
 	if (current_user_info.data.mid !== current_room_info.data.uid) {
-		console.log("当前直播间不为自己的直播间！");
+		console.warn("当前直播间不为自己的直播间");
 		return;
 	}
 
 	let button_area = await get_element_with_wait(".left-header-area");
-
 	if (button_area === null) {
-		console.log("页面元素不存在！");
+		console.warn("页面元素不存在");
 		return;
 	}
 
@@ -194,6 +192,8 @@
 	button_area.appendChild(start_live_button);
 	button_area.appendChild(stop_live_button);
 
-    GM_addStyle("html[lab-style*='dark'] #head-info-vm.bg-bright-filter::before { pointer-events: none }");
-	console.log("开/下播按钮已添加！");
+	console.log("开/下播按钮已添加");
+
+	// 修复在直播间实验室中启用深色模式后无法点击顶栏中元素的问题（上游 BUG）
+	GM_addStyle("html[lab-style*='dark'] #head-info-vm.bg-bright-filter::before { pointer-events: none }");
 }());

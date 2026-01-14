@@ -3,9 +3,9 @@
 // @name:zh-CN  我讨厌直播姬
 // @description 在个人直播间添加“开始直播”与“结束直播”按钮，让低粉丝数的用户也能绕开强制要求的直播姬开播。
 // @author      Puqns67
-// @copyright   2025, Puqns67 (https://github.com/Puqns67)
+// @copyright   2025-2026, Puqns67 (https://github.com/Puqns67)
 // @license     GPL-3.0-or-later; https://www.gnu.org/licenses/gpl-3.0.txt
-// @version     0.1.5.2
+// @version     0.1.6
 // @icon        https://i0.hdslb.com/bfs/static/jinkela/long/images/favicon.ico
 // @homepageURL https://github.com/Puqns67/IHateLivehime
 // @supportURL  https://github.com/Puqns67/IHateLivehime/issues
@@ -14,6 +14,7 @@
 // @updateURL   https://openuserjs.org/meta/Puqns67/IHateLivehime.meta.js
 // @match       https://live.bilibili.com/*
 // @require     https://cdn.jsdelivr.net/npm/js-md5/build/md5.min.js
+// @require     https://cdn.jsdelivr.net/gh/datalog/qrcode-svg/qrcode.min.js
 // @grant       GM_addStyle
 // @grant       GM_setClipboard
 // ==/UserScript==
@@ -24,12 +25,139 @@
 	const APPKEY = "aae92bc66f3edfab";
 	const APPSEC = "af125a0d5279fd576c1b4418a3e8276d";
 
+	class Popup {
+		constructor() {
+			this.popup = document.createElement("div");
+			this.popup.id = "ihatelivehime-popup";
+			this.title = document.createElement("p");
+			this.title.id = "ihatelivehime-popup-title";
+			this.content = document.createElement("div");
+			this.content.id = "ihatelivehime-popup-content";
+			this.actions = document.createElement("div");
+			this.actions.id = "ihatelivehime-popup-actions";
+
+			this.popup.appendChild(this.title);
+			this.popup.appendChild(this.content);
+			this.popup.appendChild(this.actions);
+			document.body.appendChild(this.popup);
+
+			GM_addStyle(`
+				#ihatelivehime-popup {
+					position: fixed;
+					top: 50%;
+					left: 50%;
+					transform: translate(-50%, -50%);
+					display: none;
+					flex-direction: column;
+					padding: 15px;
+					border: 5px solid #f1a9b4ee;
+					border-radius: 8px;
+					width: 20%;
+					height: auto;
+					color: white;
+					background-color: #a2757cee;
+					box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+					z-index: 1000;
+				}
+
+				#ihatelivehime-popup-title {
+					margin: 5px;
+					font-size: 1.5em;
+					margin: 10px;
+				}
+
+				#ihatelivehime-popup-content {
+					display: flex;
+					flex-direction: column;
+					margin: 10px;
+					font-size: 1.2em;
+				}
+
+				#ihatelivehime-popup-content > svg {
+					justify-self: center;
+					max-width: 100%;
+					height: auto;
+					fill: #ef6f82;
+				}
+
+				#ihatelivehime-popup-actions {
+					display: flex;
+					margin: 10px;
+					gap: 10px;
+				}
+
+				#ihatelivehime-popup-actions > button {
+					flex: auto;
+					padding: 3px 0;
+					font-size: 1.2em;
+					cursor: pointer;
+					border: none;
+					border-radius: 5px;
+				}
+
+				#ihatelivehime-popup-actions > button[type="close"] {
+					background-color: #ff0055ee;
+				}
+			`);
+		}
+
+		action_element(action) {
+			let button = document.createElement("button");
+			button.textContent = action.title;
+			button.setAttribute("type", action.type);
+			switch (action.type) {
+				case "close":
+					button.addEventListener("click", async () => this.hide());
+					break;
+				case "copy":
+					button.addEventListener("click", async () => GM_setClipboard(action.value));
+					break;
+				case "function":
+					button.addEventListener("click", action.value);
+					break;
+				default:
+					throw new Error(`Unknown action type: ${action.type}`);
+			}
+			return button;
+		}
+
+		show(title, content = null, actions = null) {
+			this.title.textContent = title;
+
+			this.content.innerHTML = "";
+			if (content === null) {
+				this.content.style.display = "none";
+			} else {
+				this.content.style.display = "unset";
+				if (typeof content === "string")
+					this.content.textContent = content;
+				else
+					this.content.appendChild(content);
+			}
+
+			this.actions.innerHTML = "";
+			if (actions !== null)
+				actions.forEach(action => this.actions.appendChild(this.action_element(action)));
+			this.actions.appendChild(this.action_element({ title: "关闭", type: "close" }));
+
+			this.popup.style.display = "flex";
+		}
+
+		hide() {
+			this.popup.style.display = "none";
+		}
+	}
+
+	let popup = new Popup();
+
 	function sleep(time) {
 		return new Promise((resolve) => setTimeout(resolve, time));
 	}
 
 	function api_alert(object) {
-		alert(`${object.msg}\n错误代码：${object.code}\n详细信息：\n${JSON.stringify(object)}`);
+		popup.show("请求接口错误", `错误代码：${object.code}<br/>${object.message}`, [
+			{ title: "复制错误详情", type: "copy", value: JSON.stringify(object) }
+		]);
 	}
 
 	async function get_element_with_wait(selectors, timeout = 3200, retry_count = 32) {
@@ -74,7 +202,7 @@
 	async function start_live(room_id) {
 		let bili_jct = get_cookie("bili_jct");
 		if (bili_jct === null) {
-			alert("无法开始直播\nCookie \"bili_jct\" 不存在，请尝试重新登录！");
+			popup.show("无法开始直播", 'Cookie "bili_jct" 不存在，请尝试重新登录！');
 			return;
 		}
 
@@ -84,7 +212,7 @@
 			return;
 		}
 		if (room_info.data.live_status === 1) {
-			alert("无法开始直播\n房间已开播！");
+			popup.show("无法开始直播", "房间已开播！");
 			return;
 		}
 
@@ -116,18 +244,26 @@
 
 		let response = await fetch("https://api.live.bilibili.com/room/v1/Room/startLive?" + params, { "method": "POST", "credentials": "include" }).then(r => r.json());
 		if (response.code !== 0) {
-			api_alert(response);
+			if (response.code === 60024) {
+				popup.show("需要人脸验证", QRCode({ msg: response.data.qr, pad: 0 }), [
+					{ title: "重试", type: "function", value: async () => start_live(room_id) }
+				]);
+			} else {
+				api_alert(response);
+			}
 			return;
 		}
 
-		GM_setClipboard(response.data.rtmp.code);
-		alert(`开始直播成功！\n推流密钥已经发送至剪贴板~\n\n推流地址：${response.data.rtmp.addr}\n推流密钥：${response.data.rtmp.code}`);
+		popup.show("开始直播成功", null, [
+			{ title: "复制推流地址", type: "copy", value: response.data.rtmp.addr },
+			{ title: "复制推流密钥", type: "copy", value: response.data.rtmp.code }
+		]);
 	}
 
 	async function stop_live(room_id) {
 		let bili_jct = get_cookie("bili_jct");
 		if (bili_jct === null) {
-			alert("无法关闭直播\nCookie \"bili_jct\" 不存在，请尝试重新登录！");
+			popup.show("无法关闭直播", 'Cookie "bili_jct" 不存在，请尝试重新登录！');
 			return;
 		}
 
@@ -137,7 +273,7 @@
 			return;
 		}
 		if ([0, 2].includes(room_info.data.live_status)) {
-			alert("无法关闭直播\n房间未开播！");
+			popup.show("无法关闭直播", "房间未开播！");
 			return;
 		}
 
@@ -153,7 +289,7 @@
 			return;
 		}
 
-		alert("关闭直播成功！");
+		popup.show("关闭直播成功！");
 	}
 
 	let path_room_id = /^\/(\d+)/.exec(document.location.pathname);

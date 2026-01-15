@@ -5,7 +5,7 @@
 // @author      Puqns67
 // @copyright   2025-2026, Puqns67 (https://github.com/Puqns67)
 // @license     GPL-3.0-or-later; https://www.gnu.org/licenses/gpl-3.0.txt
-// @version     0.1.6
+// @version     0.1.6.1
 // @icon        https://i0.hdslb.com/bfs/static/jinkela/long/images/favicon.ico
 // @homepageURL https://github.com/Puqns67/IHateLivehime
 // @supportURL  https://github.com/Puqns67/IHateLivehime/issues

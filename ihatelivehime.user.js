@@ -36,9 +36,15 @@
 			this.actions = document.createElement("div");
 			this.actions.id = "ihatelivehime-popup-actions";
 
+			this.close_button = document.createElement("button");
+			this.close_button.id = "ihatelivehime-popup-close-button";
+			this.close_button.appendChild(document.createTextNode("关闭"));
+			this.close_button.addEventListener("click", async () => this.hide());
+
 			this.popup.appendChild(this.title);
 			this.popup.appendChild(this.content);
 			this.popup.appendChild(this.actions);
+			this.popup.appendChild(this.close_button);
 			document.body.appendChild(this.popup);
 
 			GM_addStyle(`
@@ -52,51 +58,46 @@
 					padding: 15px;
 					border: 5px solid #f1a9b4ee;
 					border-radius: 8px;
-					width: 20%;
-					height: auto;
 					color: white;
 					background-color: #a2757cee;
 					box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 					z-index: 1000;
 				}
 
+				#ihatelivehime-popup > * {
+					margin-top: 10px;
+				}
+
 				#ihatelivehime-popup-title {
-					margin: 5px;
-					font-size: 1.5em;
-					margin: 10px;
+					margin: unset;
+					font-size: 1.8em;
 				}
 
 				#ihatelivehime-popup-content {
 					display: flex;
 					flex-direction: column;
-					margin: 10px;
 					font-size: 1.2em;
 				}
 
 				#ihatelivehime-popup-content > svg {
-					justify-self: center;
-					max-width: 100%;
-					height: auto;
-					fill: #ef6f82;
+					align-self: center;
+					fill: #ff0055;
 				}
 
 				#ihatelivehime-popup-actions {
 					display: flex;
-					margin: 10px;
 					gap: 10px;
 				}
 
-				#ihatelivehime-popup-actions > button {
+				#ihatelivehime-popup-actions > button, #ihatelivehime-popup-close-button {
 					flex: auto;
-					padding: 3px 0;
+					padding: 3px 10px;
 					font-size: 1.2em;
-					cursor: pointer;
 					border: none;
 					border-radius: 5px;
-				}
-
-				#ihatelivehime-popup-actions > button[type="close"] {
+					color: white;
 					background-color: #ff0055ee;
+					cursor: pointer;
 				}
 			`);
 		}
@@ -104,16 +105,12 @@
 		action_element(action) {
 			let button = document.createElement("button");
 			button.textContent = action.title;
-			button.setAttribute("type", action.type);
 			switch (action.type) {
-				case "close":
-					button.addEventListener("click", async () => this.hide());
+				case "exec":
+					button.addEventListener("click", action.value);
 					break;
 				case "copy":
 					button.addEventListener("click", async () => GM_setClipboard(action.value));
-					break;
-				case "function":
-					button.addEventListener("click", action.value);
 					break;
 				default:
 					throw new Error(`Unknown action type: ${action.type}`);
@@ -125,20 +122,23 @@
 			this.title.textContent = title;
 
 			this.content.innerHTML = "";
-			if (content === null) {
-				this.content.style.display = "none";
-			} else {
-				this.content.style.display = "unset";
+			if (content !== null) {
+				this.content.style.display = null;
 				if (typeof content === "string")
 					this.content.textContent = content;
 				else
 					this.content.appendChild(content);
+			} else {
+				this.content.style.display = "none";
 			}
 
 			this.actions.innerHTML = "";
-			if (actions !== null)
+			if (actions !== null) {
+				this.actions.style.display = null;
 				actions.forEach(action => this.actions.appendChild(this.action_element(action)));
-			this.actions.appendChild(this.action_element({ title: "关闭", type: "close" }));
+			} else {
+				this.actions.style.display = "none";
+			}
 
 			this.popup.style.display = "flex";
 		}
@@ -244,12 +244,15 @@
 
 		let response = await fetch("https://api.live.bilibili.com/room/v1/Room/startLive?" + params, { "method": "POST", "credentials": "include" }).then(r => r.json());
 		if (response.code !== 0) {
-			if (response.code === 60024) {
-				popup.show("需要人脸验证", QRCode({ msg: response.data.qr, pad: 0 }), [
-					{ title: "重试", type: "function", value: async () => start_live(room_id) }
-				]);
-			} else {
-				api_alert(response);
+			switch (response.code) {
+				case 60024:
+					popup.show("需要人脸验证", QRCode({ msg: response.data.qr, pad: 0 }), [
+						{ title: "继续", type: "exec", value: async () => start_live(room_id) }
+					]);
+					break;
+				default:
+					api_alert(response);
+					break;
 			}
 			return;
 		}
@@ -319,16 +322,37 @@
 		return;
 	}
 
+	// 不显示“关注主播”按钮（在自己的直播间无法关注自己）
+	let follow_button = await get_element_with_wait(".follow-ctnr");
+	if (follow_button !== null)
+		follow_button.style.display = "none";
+
 	let start_live_button = document.createElement("button");
+	start_live_button.id = "ihatelivehime-start-live-button";
 	start_live_button.appendChild(document.createTextNode("开始直播"));
 	start_live_button.addEventListener("click", async () => start_live(room_id));
 
 	let stop_live_button = document.createElement("button");
+	stop_live_button.id = "ihatelivehime-stop-live-button";
 	stop_live_button.appendChild(document.createTextNode("结束直播"));
 	stop_live_button.addEventListener("click", async () => stop_live(room_id));
 
 	button_area.appendChild(start_live_button);
 	button_area.appendChild(stop_live_button);
+
+	GM_addStyle(`
+		#ihatelivehime-start-live-button, #ihatelivehime-stop-live-button {
+			margin-left: 10px;
+			padding: 2px 10px;
+			color: white;
+			font-size: 1em;
+			font-weight: bold;
+			background-color: #ef6f82;
+			cursor: pointer;
+			border: unset;
+			border-radius: 8px;
+		}
+	`);
 
 	console.log("开/下播按钮已添加");
 

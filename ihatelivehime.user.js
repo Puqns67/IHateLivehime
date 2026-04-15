@@ -13,8 +13,8 @@
 // @downloadURL https://openuserjs.org/install/Puqns67/IHateLivehime.min.user.js
 // @updateURL   https://openuserjs.org/meta/Puqns67/IHateLivehime.meta.js
 // @match       https://live.bilibili.com/*
-// @require     https://cdn.jsdelivr.net/npm/js-md5/build/md5.min.js
-// @require     https://cdn.jsdelivr.net/gh/datalog/qrcode-svg/qrcode.min.js
+// @require     https://cdn.jsdelivr.net/gh/emn178/js-md5@4c40b9472526dbffff49e42da7aeda79778ac88a/build/md5.min.js
+// @require     https://cdn.jsdelivr.net/gh/datalog/qrcode-svg@80725a0be1884096f4d47fd22d34698027e51ec1/qrcode.min.js
 // @grant       GM_addStyle
 // @grant       GM_setClipboard
 // ==/UserScript==
@@ -23,6 +23,9 @@
 
 const APPKEY = "aae92bc66f3edfab";
 const APPSEC = "af125a0d5279fd576c1b4418a3e8276d";
+
+let popup = null;
+let room_id = null;
 
 class Popup {
 	constructor() {
@@ -93,6 +96,10 @@ class Popup {
 				white-space: nowrap;
 			}
 
+			#ihatelivehime-popup-content > iframe {
+				border: unset;
+			}
+
 			#ihatelivehime-popup-actions {
 				display: flex;
 				gap: 10px;
@@ -128,23 +135,22 @@ class Popup {
 	}
 
 	show(title, content = null, actions = null) {
+		if (this.popup.style.display === "flex") {
+			this.hide();
+		}
+
 		this.title.textContent = title;
 
 		if (content !== null) {
-			this.content.style.removeProperty("display");
-			this.content.replaceChildren();
 			if (typeof content === "string")
-				this.content.textContent = content;
+				this.content.innerHTML = content;
 			else
 				content.forEach(element => this.content.appendChild(element));
-
 		} else {
 			this.content.style.display = "none";
 		}
 
 		if (actions !== null) {
-			this.actions.style.removeProperty("display");
-			this.actions.replaceChildren();
 			actions.forEach(action => this.actions.appendChild(this.action_element(action)));
 		} else {
 			this.actions.style.display = "none";
@@ -155,6 +161,10 @@ class Popup {
 
 	hide() {
 		this.popup.style.removeProperty("display");
+		this.content.style.removeProperty("display");
+		this.content.replaceChildren();
+		this.actions.style.removeProperty("display");
+		this.actions.replaceChildren();
 	}
 }
 
@@ -185,7 +195,7 @@ function get_cookie(name) {
 	return re === null ? null : re[1];
 }
 
-function api_alert(popup, object) {
+function api_alert(object) {
 	popup.show("请求接口错误", `错误代码：${object.code}<br/>${object.message}`, [
 		{ title: "复制错误详情", type: "copy", value: JSON.stringify(object) }
 	]);
@@ -211,7 +221,7 @@ async function get_room_info_by_user_id(id) {
 	return await fetch(`https://api.live.bilibili.com/live_user/v1/Master/info?uid=${id}`, { "credentials": "include" }).then(r => r.json());
 }
 
-async function start_live(popup, room_id) {
+async function start_live() {
 	let bili_jct = get_cookie("bili_jct");
 	if (bili_jct === null) {
 		popup.show("无法开始直播", 'Cookie "bili_jct" 不存在，请尝试重新登录！');
@@ -220,7 +230,7 @@ async function start_live(popup, room_id) {
 
 	let room_info = await get_room_info_by_room_id(room_id);
 	if (room_info.code !== 0) {
-		api_alert(popup, room_info);
+		api_alert(room_info);
 		return;
 	}
 	if (room_info.data.live_status === 1) {
@@ -230,13 +240,25 @@ async function start_live(popup, room_id) {
 
 	let current_timestemp = await get_timestemp();
 	if (current_timestemp.code !== 0) {
-		api_alert(popup, current_timestemp);
+		api_alert(current_timestemp);
 		return;
 	}
 
-	let current_liveime_version = await get_current_liveime_version();
+	// 使用静态版本
+	// >= 7.52.0.10453 会使用 60043 方式验证（版本号不完全确定）
+	// < 7.52.0.10453 会使用 60024 方式验证
+	// 目前使用 7.47.0.10269
+	let current_liveime_version = {
+		code: 0,
+		data: {
+			curr_version: '7.47.0.10269',
+			build: '10269',
+		}
+	}
+	// 使用动态最新版本（在线获取）
+	// current_liveime_version = await get_current_liveime_version();
 	if (current_liveime_version.code !== 0) {
-		api_alert(popup, current_liveime_version);
+		api_alert(current_liveime_version);
 		return;
 	}
 
@@ -259,11 +281,22 @@ async function start_live(popup, room_id) {
 		switch (response.code) {
 			case 60024:
 				popup.show("需要人脸验证", [QRCode({ msg: response.data.qr, pad: 0 })], [
-					{ title: "继续", type: "exec", value: async () => start_live(room_id) }
+					{ title: "继续", type: "exec", value: start_live }
+				]);
+				break;
+			case 60043:
+				let hint = document.createElement("span");
+				hint.appendChild(document.createTextNode("完成验证后请直接点击继续"));
+				let subsite = document.createElement("iframe");
+				subsite.src = "https://live.bilibili.com/p/html/bilili-page-face-auth/index.html?is_live_webview=1&app_common=open&v_voucher=" + response.data.risk_extra.v_voucher
+				subsite.width = '380px';
+				subsite.height = '380px';
+				popup.show("需要进行外部验证", [hint, subsite], [
+					{ title: "继续", type: "exec", value: start_live }
 				]);
 				break;
 			default:
-				api_alert(popup, response);
+				api_alert(response);
 				break;
 		}
 		return;
@@ -285,7 +318,7 @@ async function start_live(popup, room_id) {
 	]);
 }
 
-async function stop_live(popup, room_id) {
+async function stop_live() {
 	let bili_jct = get_cookie("bili_jct");
 	if (bili_jct === null) {
 		popup.show("无法关闭直播", 'Cookie "bili_jct" 不存在，请尝试重新登录！');
@@ -294,7 +327,7 @@ async function stop_live(popup, room_id) {
 
 	let room_info = await get_room_info_by_room_id(room_id);
 	if (room_info.code !== 0) {
-		api_alert(popup, room_info);
+		api_alert(room_info);
 		return;
 	}
 	if ([0, 2].includes(room_info.data.live_status)) {
@@ -310,7 +343,7 @@ async function stop_live(popup, room_id) {
 
 	let response = await fetch("https://api.live.bilibili.com/room/v1/Room/stopLive?" + params, { "method": "POST", "credentials": "include" }).then(r => r.json());
 	if (response.code !== 0) {
-		api_alert(popup, response);
+		api_alert(response);
 		return;
 	}
 
@@ -318,14 +351,14 @@ async function stop_live(popup, room_id) {
 }
 
 (async function () {
-	let popup = new Popup();
+	popup = new Popup();
 
 	let path_room_id = /^\/(\d+)/.exec(document.location.pathname);
 	if (path_room_id === null) {
 		console.warn("当前页面并非直播间");
 		return;
 	}
-	let room_id = Number(path_room_id[1]);
+	room_id = Number(path_room_id[1]);
 
 	let current_user_info = await get_current_user_info();
 	if (current_user_info.code === -101) {
@@ -349,11 +382,11 @@ async function stop_live(popup, room_id) {
 
 	let start_live_button = admin_drop_first_item.cloneNode();
 	start_live_button.appendChild(document.createTextNode("开始直播"));
-	start_live_button.addEventListener("click", async () => start_live(popup, room_id));
+	start_live_button.addEventListener("click", start_live);
 
 	let stop_live_button = admin_drop_first_item.cloneNode();
 	stop_live_button.appendChild(document.createTextNode("结束直播"));
-	stop_live_button.addEventListener("click", async () => stop_live(popup, room_id));
+	stop_live_button.addEventListener("click", stop_live);
 
 	admin_drop.insertBefore(start_live_button, admin_drop_first_item);
 	admin_drop.insertBefore(stop_live_button, admin_drop_first_item);

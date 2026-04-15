@@ -1,5 +1,7 @@
 # IHateLivehime
 
+![Greasy Fork Downloads](https://img.shields.io/greasyfork/dt/574044?style=flat-square&label=Installs)
+
 我讨厌直播姬
 
 在个人直播间添加“开始直播”与“结束直播”按钮，让低粉丝数的用户也能绕开强制要求的直播姬享受一键开播。

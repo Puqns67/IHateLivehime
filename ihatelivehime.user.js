@@ -15,6 +15,8 @@
 // @match       https://*.bilibili.com/*
 // @require     https://cdn.jsdelivr.net/gh/emn178/js-md5@4c40b9472526dbffff49e42da7aeda79778ac88a/build/md5.min.js
 // @require     https://cdn.jsdelivr.net/gh/datalog/qrcode-svg@80725a0be1884096f4d47fd22d34698027e51ec1/qrcode.min.js
+// @grant       GM_getValue
+// @grant       GM_setValue
 // @grant       GM_addStyle
 // @grant       GM_registerMenuCommand
 // @grant       GM_setClipboard
@@ -223,6 +225,26 @@ async function get_room_info_by_room_id(id) {
 	return await fetch(`https://api.live.bilibili.com/room/v1/Room/get_info?room_id=${id}`, { "credentials": "include" }).then(r => r.json());
 }
 
+async function get_liveime_version() {
+	// >= 7.52.0.10453 会使用 60043 方式验证（版本号不完全确定）
+	// < 7.52.0.10453 会使用 60024 方式验证
+	// 目前默认使用静态版本
+	// 静态版本目前使用 7.47.0.10269
+	if (GM_getValue("use_static_liveime_version", true))
+		return { version: "7.47.0.10269", build: "10269" };
+
+	// 使用动态最新版本（在线获取）
+	let current_liveime_version = await get_current_liveime_version();
+	if (current_liveime_version.code !== 0) {
+		api_alert(current_liveime_version);
+		throw new Error("获取直播姬版本失败");
+	}
+
+	return {
+		version: current_liveime_version.data.curr_version,
+		build: current_liveime_version.data.build
+	};
+}
 
 async function start_live() {
 	let bili_jct = get_cookie("bili_jct");
@@ -247,23 +269,7 @@ async function start_live() {
 		return;
 	}
 
-	// 使用静态版本
-	// >= 7.52.0.10453 会使用 60043 方式验证（版本号不完全确定）
-	// < 7.52.0.10453 会使用 60024 方式验证
-	// 目前使用 7.47.0.10269
-	let current_liveime_version = {
-		code: 0,
-		data: {
-			curr_version: '7.47.0.10269',
-			build: '10269',
-		}
-	}
-	// 使用动态最新版本（在线获取）
-	// current_liveime_version = await get_current_liveime_version();
-	if (current_liveime_version.code !== 0) {
-		api_alert(current_liveime_version);
-		return;
-	}
+	let liveime_version = await get_liveime_version();
 
 	let header = new Headers();
 	header.append("Accept", "application/json");
@@ -273,12 +279,12 @@ async function start_live() {
 	let data = {
 		"appkey": APPKEY,
 		"area_v2": room_info.data.area_id,
-		"build": current_liveime_version.data.build,
+		"build": liveime_version.build,
 		"csrf": bili_jct,
 		"platform": "pc_link",
 		"room_id": room_id,
 		"ts": current_timestemp.data.now,
-		"version": current_liveime_version.data.curr_version
+		"version": liveime_version.version
 	};
 	data.sign = md5(new URLSearchParams(data).toString() + APPSEC);
 
@@ -394,6 +400,19 @@ async function add_action_bottons() {
 	GM_addStyle("html[lab-style*='dark'] #head-info-vm.bg-bright-filter::before { pointer-events: none }");
 }
 
+function register_toggle_menu_command(id, title, hint = null, default_value = false, toggle = false) {
+	let current_value = GM_getValue(id, default_value);
+	if (toggle) current_value = !current_value;
+	// 保存当前值
+	GM_setValue(id, current_value);
+	// 更新菜单项
+	GM_registerMenuCommand(
+		`${title}：${current_value ? "启用" : "禁用"}${current_value == default_value ? "（默认）" : ""}`,
+		() => register_toggle_menu_command(id, title, hint, default_value, true),
+		{ id: id, title: hint, autoClose: false }
+	);
+}
+
 (async function () {
 	popup = new Popup();
 
@@ -414,6 +433,15 @@ async function add_action_bottons() {
 	GM_registerMenuCommand("开启直播", start_live);
 	GM_registerMenuCommand("结束直播", stop_live);
 
+	register_toggle_menu_command(
+		"use_static_liveime_version",
+		"使用脚本内置的直播姬版本号",
+		"关闭以使用在线获取的版本号，都有可能会因为 API 变化而失效。",
+		true
+	);
+
 	if (new RegExp(`^https:\\/\\/live\\.bilibili\\.com\\/${room_id}(?:$|\\?|#)`).test(document.location.href))
 		await add_action_bottons();
+	else
+		GM_registerMenuCommand("快速切换至直播间", () => window.location.href = `https://live.bilibili.com/${room_id}`);
 }());

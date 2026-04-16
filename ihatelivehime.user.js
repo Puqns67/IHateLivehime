@@ -262,6 +262,11 @@ async function start_live() {
 		return;
 	}
 
+	let header = new Headers();
+	header.append("Accept", "application/json");
+	header.append("Content-Type", "application/x-www-form-urlencoded");
+	// header.append("User-Agent", `LiveHime / 7.52.0.10453 os / Windows pc_app / livehime build / 10453 osVer /10.0_x86_64`);
+
 	let data = {
 		"appkey": APPKEY,
 		"area_v2": room_info.data.area_id,
@@ -274,9 +279,12 @@ async function start_live() {
 	};
 	data.sign = md5(new URLSearchParams(data).toString() + APPSEC);
 
-	let params = new URLSearchParams(data).toString();
+	let request = new Request(
+		"https://api.live.bilibili.com/room/v1/Room/startLive",
+		{ method: "POST", headers: header, body: new URLSearchParams(data).toString(), credentials: "include", cache: "no-store" }
+	);
 
-	let response = await fetch("https://api.live.bilibili.com/room/v1/Room/startLive?" + params, { "method": "POST", "credentials": "include" }).then(r => r.json());
+	let response = await fetch(request).then(r => r.json());
 	if (response.code !== 0) {
 		switch (response.code) {
 			case 60024:
@@ -335,13 +343,23 @@ async function stop_live() {
 		return;
 	}
 
-	let params = new URLSearchParams({
-		"platform": "pc_link",
-		"room_id": room_id,
-		"csrf": bili_jct
-	}).toString();
+	let header = new Headers();
+	header.append("Accept", "application/json");
+	header.append("Content-Type", "application/x-www-form-urlencoded");
+	// header.append("User-Agent", `LiveHime / 7.52.0.10453 os / Windows pc_app / livehime build / 10453 osVer /10.0_x86_64`);
 
-	let response = await fetch("https://api.live.bilibili.com/room/v1/Room/stopLive?" + params, { "method": "POST", "credentials": "include" }).then(r => r.json());
+	let data = {
+		"csrf": bili_jct,
+		"platform": "pc_link",
+		"room_id": room_id
+	};
+
+	let request = new Request(
+		"https://api.live.bilibili.com/room/v1/Room/stopLive",
+		{ method: "POST", headers: header, body: new URLSearchParams(data).toString(), credentials: "include", cache: "no-store" }
+	);
+
+	let response = await fetch(request).then(r => r.json());
 	if (response.code !== 0) {
 		api_alert(response);
 		return;

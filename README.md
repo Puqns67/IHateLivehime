@@ -1,6 +1,7 @@
 # IHateLivehime
 
-![Greasy Fork Downloads](https://img.shields.io/greasyfork/dt/574044?style=flat-square&label=Installs)
+![jsDelivr hits (GitHub)](https://img.shields.io/jsdelivr/gh/hm/Puqns67/IHateLivehime?style=flat-square&label=jsDelivr%20Hits)
+![Greasy Fork Downloads](https://img.shields.io/greasyfork/dt/574044?style=flat-square&label=Greasy%20Fork%20Downloads)
 
 我讨厌直播姬
 
@@ -10,8 +11,8 @@
 
 需要在浏览器中安装有暴力猴（Violentmonkey）或油猴（Tampermonkey），然后点击下方链接即可安装：
 
-* [点击这里从 Greasy Fork 安装](https://update.greasyfork.org/scripts/574044/IHateLivehime.user.js)（推荐）
-* [点击这里从 OpenUserJS 安装](https://openuserjs.org/install/Puqns67/IHateLivehime.user.js)
+- [点击这里从 jsDelivr CDN 安装](https://cdn.jsdelivr.net/gh/Puqns67/IHateLivehime/ihatelivehime.user.js)（推荐）
+- [点击这里从 Greasy Fork 安装](https://update.greasyfork.org/scripts/574044/IHateLivehime.user.js)
 
 之后打开你自己的直播间就能看到开始与结束直播的按钮了 o/
 
@@ -21,5 +22,5 @@
 
 ## 致谢
 
-* [SocialSisterYi/bilibili-API-collect](https://github.com/SocialSisterYi/bilibili-API-collect)
-* [ChaceQC/bilibili_live_stream_code](https://github.com/ChaceQC/bilibili_live_stream_code)
+- [SocialSisterYi/bilibili-API-collect](https://github.com/SocialSisterYi/bilibili-API-collect)
+- [ChaceQC/bilibili_live_stream_code](https://github.com/ChaceQC/bilibili_live_stream_code)

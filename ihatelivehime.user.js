@@ -10,8 +10,8 @@
 // @homepageURL https://github.com/Puqns67/IHateLivehime
 // @supportURL  https://github.com/Puqns67/IHateLivehime/issues
 // @namespace   https://github.com/Puqns67
-// @downloadURL https://openuserjs.org/install/Puqns67/IHateLivehime.user.js
-// @updateURL   https://openuserjs.org/meta/Puqns67/IHateLivehime.meta.js
+// @downloadURL https://cdn.jsdelivr.net/gh/Puqns67/IHateLivehime/ihatelivehime.user.js
+// @updateURL   https://cdn.jsdelivr.net/gh/Puqns67/IHateLivehime/ihatelivehime.meta.js
 // @match       https://live.bilibili.com/*
 // @require     https://cdn.jsdelivr.net/gh/emn178/js-md5@4c40b9472526dbffff49e42da7aeda79778ac88a/build/md5.min.js
 // @require     https://cdn.jsdelivr.net/gh/datalog/qrcode-svg@80725a0be1884096f4d47fd22d34698027e51ec1/qrcode.min.js
@@ -19,7 +19,7 @@
 // @grant       GM_setClipboard
 // ==/UserScript==
 
-'use strict';
+"use strict";
 
 const APPKEY = "aae92bc66f3edfab";
 const APPSEC = "af125a0d5279fd576c1b4418a3e8276d";
@@ -206,7 +206,7 @@ async function get_timestemp() {
 }
 
 async function get_current_liveime_version() {
-	return await fetch('https://api.live.bilibili.com/xlive/app-blink/v1/liveVersionInfo/getHomePageLiveVersion?system_version=2').then(r => r.json());
+	return await fetch("https://api.live.bilibili.com/xlive/app-blink/v1/liveVersionInfo/getHomePageLiveVersion?system_version=2").then(r => r.json());
 }
 
 async function get_current_user_info() {
@@ -297,8 +297,8 @@ async function start_live() {
 				hint.appendChild(document.createTextNode("完成验证后请直接点击继续"));
 				let subsite = document.createElement("iframe");
 				subsite.src = "https://live.bilibili.com/p/html/bilili-page-face-auth/index.html?is_live_webview=1&app_common=open&v_voucher=" + response.data.risk_extra.v_voucher
-				subsite.width = '380px';
-				subsite.height = '380px';
+				subsite.width = "380px";
+				subsite.height = "380px";
 				popup.show("需要进行外部验证", [hint, subsite], [
 					{ title: "继续", type: "exec", value: start_live }
 				]);

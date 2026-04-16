@@ -12,10 +12,11 @@
 // @namespace   https://github.com/Puqns67
 // @downloadURL https://cdn.jsdelivr.net/gh/Puqns67/IHateLivehime/ihatelivehime.user.js
 // @updateURL   https://cdn.jsdelivr.net/gh/Puqns67/IHateLivehime/ihatelivehime.meta.js
-// @match       https://live.bilibili.com/*
+// @match       https://*.bilibili.com/*
 // @require     https://cdn.jsdelivr.net/gh/emn178/js-md5@4c40b9472526dbffff49e42da7aeda79778ac88a/build/md5.min.js
 // @require     https://cdn.jsdelivr.net/gh/datalog/qrcode-svg@80725a0be1884096f4d47fd22d34698027e51ec1/qrcode.min.js
 // @grant       GM_addStyle
+// @grant       GM_registerMenuCommand
 // @grant       GM_setClipboard
 // ==/UserScript==
 
@@ -25,6 +26,7 @@ const APPKEY = "aae92bc66f3edfab";
 const APPSEC = "af125a0d5279fd576c1b4418a3e8276d";
 
 let popup = null;
+let user_id = null;
 let room_id = null;
 
 class Popup {
@@ -213,13 +215,14 @@ async function get_current_user_info() {
 	return await fetch("https://api.bilibili.com/x/space/myinfo", { "credentials": "include" }).then(r => r.json());
 }
 
+async function get_room_id_by_user_id(id) {
+	return await fetch(`https://api.live.bilibili.com/room/v2/Room/room_id_by_uid?uid=${id}`).then(r => r.json());
+}
+
 async function get_room_info_by_room_id(id) {
 	return await fetch(`https://api.live.bilibili.com/room/v1/Room/get_info?room_id=${id}`, { "credentials": "include" }).then(r => r.json());
 }
 
-async function get_room_info_by_user_id(id) {
-	return await fetch(`https://api.live.bilibili.com/live_user/v1/Master/info?uid=${id}`, { "credentials": "include" }).then(r => r.json());
-}
 
 async function start_live() {
 	let bili_jct = get_cookie("bili_jct");
@@ -368,29 +371,7 @@ async function stop_live() {
 	popup.show("关闭直播成功！");
 }
 
-(async function () {
-	popup = new Popup();
-
-	let path_room_id = /^\/(\d+)/.exec(document.location.pathname);
-	if (path_room_id === null) {
-		console.warn("当前页面并非直播间");
-		return;
-	}
-	room_id = Number(path_room_id[1]);
-
-	let current_user_info = await get_current_user_info();
-	if (current_user_info.code === -101) {
-		console.warn("账户未登录");
-		return;
-	}
-
-	let current_room_info = await get_room_info_by_room_id(room_id);
-
-	if (current_user_info.data.mid !== current_room_info.data.uid) {
-		console.warn("当前直播间不为自己的直播间");
-		return;
-	}
-
+async function add_action_bottons() {
 	let admin_drop = await get_element_with_wait(".admin-drop-ctnr");
 	if (admin_drop === null) {
 		console.warn("页面元素不存在");
@@ -411,4 +392,28 @@ async function stop_live() {
 
 	// 修复在直播间实验室中启用深色模式后无法点击顶栏中元素的问题（上游 BUG）
 	GM_addStyle("html[lab-style*='dark'] #head-info-vm.bg-bright-filter::before { pointer-events: none }");
+}
+
+(async function () {
+	popup = new Popup();
+
+	let current_user_info = await get_current_user_info();
+	if (current_user_info.code === -101) {
+		console.warn("账户未登录");
+		return;
+	}
+	user_id = current_user_info.data.mid;
+
+	let current_user_room_id = await get_room_id_by_user_id(user_id);
+	if (current_user_room_id.code !== 0) {
+		console.warn("获取房间 ID 失败");
+		return;
+	}
+	room_id = current_user_room_id.data.room_id;
+
+	GM_registerMenuCommand("开启直播", start_live);
+	GM_registerMenuCommand("结束直播", stop_live);
+
+	if (new RegExp(`^https:\\/\\/live\\.bilibili\\.com\\/${room_id}(?:$|\\?|#)`).test(document.location.href))
+		await add_action_bottons();
 }());

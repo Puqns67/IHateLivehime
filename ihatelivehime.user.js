@@ -395,9 +395,6 @@ async function add_action_bottons() {
 
 	admin_drop.insertBefore(start_live_button, admin_drop_first_item);
 	admin_drop.insertBefore(stop_live_button, admin_drop_first_item);
-
-	// 修复在直播间实验室中启用深色模式后无法点击顶栏中元素的问题（上游 BUG）
-	GM_addStyle("html[lab-style*='dark'] #head-info-vm.bg-bright-filter::before { pointer-events: none }");
 }
 
 function register_toggle_menu_command(id, title, hint = null, default_value = false, toggle = false) {

@@ -1,7 +1,7 @@
 # IHateLivehime
 
-![jsDelivr hits (GitHub)](https://img.shields.io/jsdelivr/gh/hm/Puqns67/IHateLivehime?style=flat-square&label=jsDelivr%20Hits)
-![Greasy Fork Downloads](https://img.shields.io/greasyfork/dt/574044?style=flat-square&label=Greasy%20Fork%20Downloads)
+[![jsDelivr hits (GitHub)](https://img.shields.io/jsdelivr/gh/hm/Puqns67/IHateLivehime?style=flat-square&label=jsDelivr%20Hits)](https://www.jsdelivr.com/package/gh/Puqns67/IHateLivehime)
+[![Greasy Fork Downloads](https://img.shields.io/greasyfork/dt/574044?style=flat-square&label=Greasy%20Fork%20Downloads)](https://greasyfork.org/scripts/574044)
 
 我讨厌直播姬
 
@@ -14,7 +14,13 @@
 - [点击这里从 jsDelivr CDN 安装](https://cdn.jsdelivr.net/gh/Puqns67/IHateLivehime/ihatelivehime.user.js)（推荐）
 - [点击这里从 Greasy Fork 安装](https://update.greasyfork.org/scripts/574044/IHateLivehime.user.js)
 
-之后打开你自己的直播间就能看到开始与结束直播的按钮了 o/
+之后打开你自己的直播间就能在“直播间管理”中看到开始与结束直播的按钮了 o/
+
+![example_bilibili_live_page_dropdown](https://github.com/user-attachments/assets/363b2cf2-de2a-4d05-a374-47bc753d9721)
+
+在任意哔哩哔哩页面中打开你的 Userscript 管理器菜单也能直接开启 & 关闭直播。
+
+![example_userscript_manager_menu](https://github.com/user-attachments/assets/6b1b79cb-85bf-4073-a719-a0ca387108a9)
 
 ## 移除
 
